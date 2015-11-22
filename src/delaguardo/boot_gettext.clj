@@ -18,56 +18,38 @@
         (read r)))
     {}))
 
-(defn- rename-match [match]
-  (zipmap [:origin :transform :str-key] match))
-
 (defn- prepare-translations! [text translations]
-  (let [keys (map :str-key (dedupe (map rename-match (re-seq #"\#(t|i|p) \"(.*)\"" text))))]
-    (reset! translations (merge (zipmap keys keys)
-                                @translations))))
+  (let [from-text (dedupe (map last (re-seq #"\"(.*?)\"" text)))]
+    (doseq [tr-entry from-text]
+      (when-not (= tr-entry "")
+        (swap! translations assoc-in [tr-entry :value] tr-entry)
+        (swap! translations assoc-in [tr-entry :disabled?] true)))))
 
-(defn- interpolate [st]
-  )
+(defn- replace-part! [text k v translations]
+  (if (:disabled? v)
+    text
+    (let [pattern (re-pattern (str "\"\\Q" k "\\E\""))]
+      (if (re-find pattern text)
+        (clojure.string/replace text pattern (str "\"" v "\""))
+        text))))
 
-(defn- pluralize [st]
-  )
-
-(defn- replace-part [text k v]
-  (let [pattern (re-pattern (str "#(t|i|p) \"\\Q" k "\\E\""))]
-    (loop [t text stop false]
-      (if stop
-        t
-        (let [[_ l] (re-find pattern t)]
-          (if-not l
-            (recur t true)
-            (let [p (re-pattern (str "#" l " \"\\Q" k "\\E\""))]
-              (recur (clojure.string/replace
-                      text
-                      p
-                      (case l
-                        "t" (str "\"" v "\"")
-                        "i" (str "\"" v "\"") ;; TODO Implement intepolation
-                        "p" (str "\"" v "\"") ;; TODO Implement pluralization
-                        (str "\"" v "\"")))
-                     false))))))))
-
-(defn- translate-file! [text out-file translations]
+(defn- translate-file! [text translations]
   (loop [t text tr @translations]
     (let [[k v] (first tr)]
       (if-not k
         t
         (recur
-         (replace-part t k v)
+         (replace-part! t k v translations)
          (rest tr))))))
 
 (core/deftask gettext
   "Translate .clj/.cljs/.cljc source files with translations from {locale}.tr.edn source file."
   [l locale LOCALE str "A locale identificator."]
   (let [out-dir (core/tmp-dir!)
-        last-source-files (atom nil)
-        translations (atom nil)]
+        last-source-files (atom nil)]
     (core/with-pre-wrap fileset
-      (let [source-files (->> fileset
+      (let [translations (atom nil)
+            source-files (->> fileset
                               (core/fileset-diff @last-source-files)
                               core/input-files
                               (core/by-ext [".clj" ".cljs" ".cljc"]))
@@ -90,7 +72,7 @@
                 (prepare-translations! in-file-text translations)
                 (doto out-file
                   io/make-parents
-                  (spit (translate-file! in-file-text out-file translations))))))
+                  (spit (translate-file! in-file-text translations))))))
           (util/info "Write %s\n" out-translations-path)
           (write-translations-edn! out-translations-file translations))
         (-> fileset
