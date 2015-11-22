@@ -2,7 +2,7 @@
 
 [](dependency)
 ```clojure
-[delaguardo/boot-gettext "0.1.2-SNAPSHOT"] ;; latest release
+[delaguardo/boot-gettext "0.1.2"] ;; latest release
 ```
 [](/dependency)
 
