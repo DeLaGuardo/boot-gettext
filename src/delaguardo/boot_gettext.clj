@@ -22,15 +22,17 @@
   (let [from-text (dedupe (map last (re-seq #"\"(.*?)\"" text)))]
     (doseq [tr-entry from-text]
       (when-not (= tr-entry "")
-        (swap! translations assoc-in [tr-entry :value] tr-entry)
-        (swap! translations assoc-in [tr-entry :disabled?] true)))))
+        (swap! translations assoc-in [tr-entry :value] (or (-> @translations (get tr-entry) :value)
+                                                           tr-entry))
+        (when (nil? (-> @translations (get tr-entry) :disabled?))
+          (swap! translations assoc-in [tr-entry :disabled?] true))))))
 
 (defn- replace-part! [text k v translations]
   (if (:disabled? v)
     text
     (let [pattern (re-pattern (str "\"\\Q" k "\\E\""))]
       (if (re-find pattern text)
-        (clojure.string/replace text pattern (str "\"" v "\""))
+        (clojure.string/replace text pattern (str "\"" (:value v) "\""))
         text))))
 
 (defn- translate-file! [text translations]
