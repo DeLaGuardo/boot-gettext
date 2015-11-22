@@ -21,14 +21,34 @@ Add `boot-gettext` to your `build.boot` dependencies and `require` the namespace
 (require '[delaguardo.boot-gettext :refer [gettext]])
 ```
 
-Then start translate your source files:
+Then slice translations from your source files
 
 ```clj
-(deftask build
-  (comp
-  (gettext :locale "ru")
-  ;; All other build tasks, (cljs) or (jar) for example.
-))
+(gettext :locale "jp")
+```
+
+or from command line:
+
+```bash
+boot gettext -l "jp"
+```
+
+This will generate directory `./target/locales`. Just move it to project's resource folder like `cp -r ./target/locales ./resources`.
+
+## Edit translation dictionary
+
+Freshly generated translation file (`./resources/locales/jp.tr.edn`) looks like:
+
+```clojure
+{"My name is " {:value "My name is "
+                :disabled? true}}
+```
+
+A key is a origin string spliced from source code, :value define transaltion and :disabled show will it use :value for rewriting source code. Change it to this:
+
+```clojure
+{"My name is " {:vlaue "私の名前は"
+                :disabled? false}}
 ```
 
 ## License
@@ -36,6 +56,6 @@ Then start translate your source files:
 Copyright © 2015 Kirill Chernyshov
 
 Distributed under the Eclipse Public License either version 1.0 or (at
-your option) any later version.
+                                                                    your option) any later version.
 
 [1]: https://github.com/boot-clj/boot
