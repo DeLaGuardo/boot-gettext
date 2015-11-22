@@ -4,7 +4,7 @@
 
 [](dependency)
 ```clojure
-[delaguardo/gettext "0.1.0-SNAPSHOT"] ;; latest available version
+[delaguardo/gettext "0.1.0"] ;; latest available version
 ```
 [](/dependency)
 

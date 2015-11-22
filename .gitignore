@@ -11,3 +11,4 @@ pom.xml.asc
 .nrepl-*
 /logs
 /.boot
+gpg.edn
