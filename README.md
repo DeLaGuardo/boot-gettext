@@ -1,7 +1,5 @@
 # boot-gettext
 
-[![Clojars Project](http://clojars.org/delaguardo/clj-i18n/latest-version.svg)](http://clojars.org/delaguardo/clj-i18n)
-
 [](dependency)
 ```clojure
 [delaguardo/boot-gettext "0.1.0"] ;; latest release
